@@ -13,6 +13,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
+    "seed": "ts-node src/seed/seed.ts",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -30,7 +31,7 @@
     "mongoose": "^9.12.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "sanitize-html": "^2.18.1"
+    "sanitize-html": "2.17.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.16",

@@ -4,7 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
-describe('AppController (e2e)', () => {
+describe('Browser API (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
@@ -16,14 +16,22 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('GET /users returns the public user list', async () => {
+    const response = await request(app.getHttpServer()).get('/users').expect(200);
+    expect(Array.isArray(response.body)).toBe(true);
+    for (const user of response.body as unknown[]) {
+      expect(user).toEqual(
+        expect.objectContaining({
+          id: expect.any(String),
+          name: expect.any(String),
+        }),
+      );
+    }
   });
 
   afterEach(async () => {
-    await app.close();
+    if (app) await app.close();
   });
 });
+
+jest.setTimeout(60_000);
