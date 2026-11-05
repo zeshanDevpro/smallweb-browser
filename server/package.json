@@ -1,42 +1,49 @@
 {
   "name": "server",
   "version": "0.0.1",
+  "engines": {
+    "node": ">=20"
+  },
   "description": "",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "deploy": "nest deploy",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "oxlint src/ test/",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "^12.0.1",
-    "@nestjs/core": "^12.0.1",
-    "@nestjs/observe": "^0.1.8",
-    "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/common": "^11.1.17",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.17",
+    "@nestjs/mongoose": "^11.0.4",
+    "@nestjs/platform-express": "^11.1.17",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "mongoose": "^9.12.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "sanitize-html": "^2.18.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^12.0.0",
+    "@nestjs/cli": "^11.0.16",
     "@nestjs/mau": "^0.2.6",
-    "@nestjs/schematics": "^12.0.0",
-    "@nestjs/testing": "^12.0.1",
+    "@nestjs/schematics": "^11.0.16",
+    "@nestjs/testing": "^11.1.17",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.0",
+    "@types/node": "^22.0.0",
+    "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^7.0.0",
+    "eslint": "^10.0.0",
+    "globals": "^16.0.0",
     "jest": "^30.0.0",
     "oxlint": "^1.58.0",
     "prettier": "^3.4.2",
@@ -46,6 +53,12 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^6.0.2"
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.0.0"
+  },
+  "overrides": {
+    "babel-plugin-istanbul": {
+      "test-exclude": "^8.0.0"
+    }
   }
 }
