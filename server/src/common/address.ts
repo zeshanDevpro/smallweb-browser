@@ -7,6 +7,10 @@ export function normalizeAddress(value: string): string {
     .replace(/^(?:zz:\/\/|https?:\/\/)/, '');
 }
 
+export function normalizeAddressInput(value: unknown): unknown {
+  return typeof value === 'string' ? normalizeAddress(value) : value;
+}
+
 export function isValidAddress(value: string): boolean {
   const address = normalizeAddress(value);
   const label = address.slice(0, -3);

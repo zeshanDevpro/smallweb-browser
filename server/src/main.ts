@@ -7,6 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
+  app.getHttpAdapter().getInstance().disable('x-powered-by');
   const config = app.get(ConfigService);
   app.use(json({ limit: '200kb' }));
   app.use(urlencoded({ extended: true, limit: '200kb' }));

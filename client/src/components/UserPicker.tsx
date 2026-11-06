@@ -1,33 +1,26 @@
 "use client";
 
-import type { User } from "@/lib/types";
+import type { UserPickerProps } from "@/lib/types";
+import { SelectDropdown } from "./SelectDropdown";
 
 export function UserPicker({
   users,
   user,
   onChange,
-}: {
-  users: User[];
-  user: User;
-  onChange: (user: User) => void;
-}) {
+}: UserPickerProps) {
   return (
     <label className="user-picker">
       <span>Browsing as</span>
-      <select
-        aria-label="Choose who is browsing"
+      <SelectDropdown
+        label="Choose who is browsing"
         value={user.id}
-        onChange={(event) => {
-          const nextUser = users.find((item) => item.id === event.target.value);
+        options={users.map((item) => ({ value: item.id, label: item.name }))}
+        className="user-select"
+        onChange={(id) => {
+          const nextUser = users.find((item) => item.id === id);
           if (nextUser) onChange(nextUser);
         }}
-      >
-        {users.map((item) => (
-          <option value={item.id} key={item.id}>
-            {item.name}
-          </option>
-        ))}
-      </select>
+      />
     </label>
   );
 }

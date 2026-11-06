@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema, Types } from 'mongoose';
 import type { HydratedDocument } from 'mongoose';
-import type { Via } from '../common/via';
+import { visitViaValues, type Via } from '../common/via';
 
 export type VisitDocument = HydratedDocument<Visit>;
 
@@ -19,7 +19,7 @@ export class Visit {
 
   @Prop({
     required: true,
-    enum: ['typed', 'link', 'back', 'forward', 'history', 'search'],
+    enum: visitViaValues,
   })
   via!: Via;
 

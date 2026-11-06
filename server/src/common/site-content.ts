@@ -10,6 +10,9 @@ const namedEntities: Record<string, string> = {
   quot: '"',
 };
 
+const blockBoundaryPattern =
+  /<\/?(?:h[1-6]|p|li|div|section|article|header|footer|nav|main|blockquote|pre|tr|th|td|br|hr)\b[^>]*>/gi;
+
 function decodeEntity(entity: string): string {
   if (entity.startsWith('#x') || entity.startsWith('#X')) {
     const codePoint = Number.parseInt(entity.slice(2), 16);
@@ -27,7 +30,8 @@ function decodeEntity(entity: string): string {
 }
 
 export function extractSiteText(sanitizedHtml: string): string {
-  const plainText = sanitizeHtml(sanitizedHtml, {
+  const separatedHtml = sanitizedHtml.replace(blockBoundaryPattern, ' ');
+  const plainText = sanitizeHtml(separatedHtml, {
     allowedTags: [],
     allowedAttributes: {},
   });

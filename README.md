@@ -76,3 +76,14 @@ macOS/Linux:
 ```sh
 printf '%s\n' 'MONGO_URI=your-MongoDB-or-Atlas-URI' >> server/.env
 ```
+
+## Manual QA
+- Enter `tidepool.zz`, then follow four linked pages — Expected: four page entries in the trail.
+- Select Back three times, then Forward twice — Expected: each step shows the saved page snapshot.
+- Select Back once, then navigate to another address — Expected: Forward is disabled.
+- Search for a seeded topic, open a result, then select Back — Expected: the same search results and scroll position return.
+- Publish a page, then visit its address — Expected: the published page renders.
+- Publish the same address again — Expected: inline TAKEN error.
+- Visit `lost-lighthouse.zz`, then open History — Expected: nowhere page and a `found=false` visit.
+- Switch to Farah, then open History — Expected: empty history state.
+- Switch to Chen, open History, and jump to a visit — Expected: long history and the selected address opens.

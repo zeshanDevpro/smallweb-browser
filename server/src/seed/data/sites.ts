@@ -173,7 +173,10 @@ export const seedSites: SiteSeed[] = [
 
 export function renderSiteBody(site: SiteSeed): string {
   const paragraphs = site.paragraphs
-    .map((paragraph) => `<p>${paragraph}</p>`)
+    .map(
+      (paragraph) =>
+        `<p>${paragraph.replace(/\s+/g, ' ').trim()}</p>`,
+    )
     .join('');
   const links = site.links
     .map(

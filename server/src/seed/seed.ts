@@ -47,7 +47,7 @@ async function seed(): Promise<void> {
       await sites.updateOne(
         { address: site.address },
         {
-          $setOnInsert: {
+          $set: {
             address: site.address,
             title: site.title,
             body: content.body,
@@ -84,7 +84,7 @@ async function seed(): Promise<void> {
     const [userCount, siteCount, visitCount] = await Promise.all([
       users.countDocuments(),
       sites.countDocuments(),
-      visits.countDocuments(),
+      visits.countDocuments({ seedKey: { $exists: true } }),
     ]);
     console.log(
       `Seed complete: users=${userCount}, sites=${siteCount}, visits=${visitCount}, anchor=${anchor.toISOString()}`,

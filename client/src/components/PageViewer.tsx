@@ -1,39 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { isValidAddress, normalizeAddress } from "@/lib/address";
-import type { Site } from "@/lib/types";
+import { isFrameMessage, isValidAddress, normalizeAddress } from "@/lib/helper";
+import type { PageViewerProps } from "@/lib/types";
 
-type FrameMessage =
-  | { type: "navigate"; address: string }
-  | { type: "scroll"; y: number };
-
-function isFrameMessage(value: unknown): value is FrameMessage {
-  if (typeof value !== "object" || value === null || !("type" in value)) {
-    return false;
-  }
-  if (value.type === "navigate") {
-    return "address" in value && typeof value.address === "string";
-  }
-  return (
-    value.type === "scroll" &&
-    "y" in value &&
-    typeof value.y === "number" &&
-    Number.isFinite(value.y)
-  );
-}
-
-export function PageViewer({
-  site,
-  scrollY,
-  onNavigate,
-  onScroll,
-}: {
-  site: Site;
-  scrollY: number;
-  onNavigate: (address: string) => void;
-  onScroll: (y: number) => void;
-}) {
+export function PageViewer({ site, scrollY, onNavigate, onScroll }: PageViewerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const nonce = useMemo(() => crypto.randomUUID(), []);
   // This CSP prevents author scripts, network loads, and other unapproved resources from running.

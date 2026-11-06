@@ -1,37 +1,26 @@
-import { mockApi } from "./mockApi";
+import { httpApi } from "./api/httpApi";
+import { mockApi } from "./api/mockApi";
+import { USE_MOCK_API } from "./constants";
+import { ApiError, type Api } from "./types";
 
-import type { SearchHit, Site, User, Via, Visit } from "./types";
+const transport: Api = USE_MOCK_API ? mockApi : httpApi;
 
-export type PublishInput = {
-  address: string;
-  title: string;
-  body: string;
-  authorId: string;
+export const listUsers = () => transport.listUsers();
+export const getSite = (address: string) => transport.getSite(address);
+export const searchSites = (query: string) => transport.search(query);
+export const publishSite = (input: Parameters<Api["publishSite"]>[0]) =>
+  transport.publishSite(input);
+export const listVisits = (userId: string) => transport.listVisits(userId);
+export const recordVisit: Api["recordVisit"] = (userId, visit) =>
+  transport.recordVisit(userId, visit);
+
+export const api: Api = {
+  listUsers,
+  getSite,
+  search: searchSites,
+  publishSite,
+  listVisits,
+  recordVisit,
 };
 
-export type ApiErrorCode = "INVALID" | "TAKEN";
-
-export class ApiError extends Error {
-  constructor(
-    public readonly code: ApiErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
-
-export interface Api {
-  listUsers(): Promise<User[]>;
-  getSite(address: string): Promise<Site | null>;
-  search(q: string): Promise<SearchHit[]>;
-  publishSite(input: PublishInput): Promise<Site>;
-  listVisits(userId: string): Promise<Visit[]>;
-  recordVisit(
-    userId: string,
-    visit: { address: string; via: Via; found: boolean },
-  ): Promise<Visit>;
-}
-
-// Swap this implementation for the real adapter when the server is ready.
-export const api: Api = mockApi;
+export { ApiError };

@@ -1,12 +1,10 @@
 import { Transform } from 'class-transformer';
 import { IsMongoId, IsString, Length } from 'class-validator';
-import { normalizeAddress } from '../../common/address';
+import { normalizeAddressInput } from '../../common/address';
 import { IsValidAddress } from '../../common/is-valid-address.decorator';
 
 export class CreateSiteDto {
-  @Transform(({ value }) =>
-    typeof value === 'string' ? normalizeAddress(value) : value,
-  )
+  @Transform(({ value }) => normalizeAddressInput(value))
   @IsString()
   @IsValidAddress()
   address!: string;

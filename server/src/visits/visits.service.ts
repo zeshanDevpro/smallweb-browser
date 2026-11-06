@@ -16,11 +16,7 @@ export class VisitsService {
   ) {}
 
   async list(userId: string) {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new NotFoundException('User not found.');
-    }
-    const user = await this.users.findById(userId).select('_id').exec();
-    if (!user) throw new NotFoundException('User not found.');
+    const user = await this.findUser(userId);
 
     const visits = await this.visits
       .find({ userId: user._id })
@@ -47,11 +43,7 @@ export class VisitsService {
   }
 
   async create(userId: string, input: CreateVisitDto) {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new NotFoundException('User not found.');
-    }
-    const user = await this.users.findById(userId).select('_id').exec();
-    if (!user) throw new NotFoundException('User not found.');
+    const user = await this.findUser(userId);
 
     const address = normalizeAddress(input.address);
     try {
@@ -80,5 +72,14 @@ export class VisitsService {
       }
       throw error;
     }
+  }
+
+  private async findUser(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new NotFoundException('User not found.');
+    }
+    const user = await this.users.findById(userId).select('_id').exec();
+    if (!user) throw new NotFoundException('User not found.');
+    return user;
   }
 }

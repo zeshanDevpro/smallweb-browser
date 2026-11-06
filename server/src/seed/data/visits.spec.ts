@@ -19,9 +19,12 @@ describe('createSeedVisits', () => {
     const addressesByUser = new Map<string, Set<string>>();
 
     for (const visit of visits) {
-      const addresses = addressesByUser.get(visit.userSlug) ?? new Set<string>();
-      addresses.add(visit.address);
-      addressesByUser.set(visit.userSlug, addresses);
+      if (visit.found) {
+        const addresses =
+          addressesByUser.get(visit.userSlug) ?? new Set<string>();
+        addresses.add(visit.address);
+        addressesByUser.set(visit.userSlug, addresses);
+      }
 
       if (visit.via !== 'link') continue;
       const userVisits = visits.filter(

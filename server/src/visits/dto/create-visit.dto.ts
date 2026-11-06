@@ -1,13 +1,11 @@
 import { Transform } from 'class-transformer';
 import { Allow, IsIn, IsString } from 'class-validator';
-import { normalizeAddress } from '../../common/address';
+import { normalizeAddressInput } from '../../common/address';
 import { IsValidAddress } from '../../common/is-valid-address.decorator';
 import { visitViaValues, type Via } from '../../common/via';
 
 export class CreateVisitDto {
-  @Transform(({ value }) =>
-    typeof value === 'string' ? normalizeAddress(value) : value,
-  )
+  @Transform(({ value }) => normalizeAddressInput(value))
   @IsString()
   @IsValidAddress()
   address!: string;

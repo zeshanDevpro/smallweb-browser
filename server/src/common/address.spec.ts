@@ -1,4 +1,8 @@
-import { isValidAddress, normalizeAddress } from './address';
+import {
+  isValidAddress,
+  normalizeAddress,
+  normalizeAddressInput,
+} from './address';
 
 describe('normalizeAddress', () => {
   it('trims whitespace and lowercases the address', () => {
@@ -36,5 +40,16 @@ describe('isValidAddress', () => {
 
   it('validates after normalization', () => {
     expect(isValidAddress(' HTTPS://TIDEPOOL.ZZ ')).toBe(true);
+  });
+});
+
+describe('normalizeAddressInput', () => {
+  it('normalizes string input', () => {
+    expect(normalizeAddressInput(' HTTPS://TIDEPOOL.ZZ ')).toBe('tidepool.zz');
+  });
+
+  it('leaves non-string input unchanged for validation', () => {
+    const input = { address: 'tidepool.zz' };
+    expect(normalizeAddressInput(input)).toBe(input);
   });
 });
