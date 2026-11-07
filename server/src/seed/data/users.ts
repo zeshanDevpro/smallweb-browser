@@ -7,4 +7,5 @@ export const seedUsers: UserSeed[] = [
   { slug: 'dalia', name: 'Dalia Haddad' },
   { slug: 'eli', name: 'Eli Morgan' },
   { slug: 'farah', name: 'Farah Noor' },
+  { slug: 'muhammad-zeshan', name: 'Muhammad Zeshan' },
 ];

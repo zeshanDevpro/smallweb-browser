@@ -29,7 +29,7 @@ export function HistoryPanel({
             onClick={onClose}
             aria-label="Close history"
           >
-            <FiX aria-hidden="true" focusable="false" />
+            <FiX aria-hidden="true" focusable="false" size={30} className="hover:bg-gray-300 p-1 rounded" />
           </button>
         </div>
         {loading ? (

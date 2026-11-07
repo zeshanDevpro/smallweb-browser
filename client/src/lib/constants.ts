@@ -2,7 +2,6 @@ import type { NavigationState, Site, User } from "./types";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-export const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 export const BROWSER_USER_STORAGE_KEY = "smallweb-user";
 export const MOCK_API_DELAY_MS = 150;
 export const MOCK_SEARCH_SNIPPET_LENGTH = 130;
