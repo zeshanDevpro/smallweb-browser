@@ -1,259 +1,78 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
-import { api, ApiError } from "@/lib/api";
+import { FiGlobe } from "react-icons/fi";
+import { useBrowserStore } from "@/lib/browserStore";
+import { SUGGESTED_SITES } from "@/lib/constants";
 import {
   canGoBack,
   canGoForward,
   current,
-  initialNavigationState,
-  navigationReducer,
-} from "@/lib/navigation";
-import type { Entry, Site, User, Visit, Via } from "@/lib/types";
-import { useBrowserUser } from "./BrowserProvider";
+  entryInput,
+  getEntryTitle,
+} from "@/lib/helper";
 import { HistoryPanel } from "./HistoryPanel";
 import { NowherePage } from "./NowherePage";
 import { PageViewer } from "./PageViewer";
-import { PublishDialog, type PublishValues } from "./PublishDialog";
+import { PublishDialog } from "./PublishDialog";
 import { SearchResults } from "./SearchResults";
 import { Toolbar } from "./Toolbar";
 import { UserPicker } from "./UserPicker";
 
-type SessionState = {
-  loading: string | null;
-  visits: Visit[];
-  historyLoading: boolean;
-  historyOpen: boolean;
-  publishOpen: boolean;
-  error: string;
-};
-
-type SessionAction =
-  | { type: "LOADING"; address: string | null }
-  | { type: "VISITS"; visits: Visit[] }
-  | { type: "HISTORY_LOADING"; loading: boolean }
-  | { type: "HISTORY_OPEN"; open: boolean }
-  | { type: "PUBLISH_OPEN"; open: boolean }
-  | { type: "ERROR"; error: string };
-
-const initialSessionState: SessionState = {
-  loading: null,
-  visits: [],
-  historyLoading: true,
-  historyOpen: false,
-  publishOpen: false,
-  error: "",
-};
-
-function sessionReducer(
-  state: SessionState,
-  action: SessionAction,
-): SessionState {
-  switch (action.type) {
-    case "LOADING":
-      return { ...state, loading: action.address };
-    case "VISITS":
-      return { ...state, visits: action.visits };
-    case "HISTORY_LOADING":
-      return { ...state, historyLoading: action.loading };
-    case "HISTORY_OPEN":
-      return { ...state, historyOpen: action.open };
-    case "PUBLISH_OPEN":
-      return { ...state, publishOpen: action.open, error: "" };
-    case "ERROR":
-      return { ...state, error: action.error };
-  }
-}
-
-function entryAddress(entry: Entry | null): string {
-  return entry?.kind === "page" ? entry.address : "";
-}
-
-function getEntryTitle(entry: Entry): string | null {
-  return entry.kind === "page" ? entry.site?.title ?? null : null;
-}
-
 export function BrowserApp() {
-  const { users, user, loading, selectUser } = useBrowserUser();
+  const user = useBrowserStore((state) => state.user);
+  const usersLoading = useBrowserStore((state) => state.usersLoading);
+  const usersError = useBrowserStore((state) => state.usersError);
+  const loadUsers = useBrowserStore((state) => state.loadUsers);
 
-  if (loading) {
+  useEffect(() => {
+    void loadUsers();
+  }, [loadUsers]);
+
+  if (usersLoading) {
     return <main className="boot-screen">Opening your smallweb…</main>;
   }
   if (!user) {
     return (
       <main className="boot-screen" role="alert">
-        No browsing profiles are available.
+        {usersError || "No browsing profiles are available."}
       </main>
     );
   }
-  return (
-    <BrowserSession
-      key={user.id}
-      user={user}
-      users={users}
-      onUserChange={selectUser}
-    />
-  );
+  return <BrowserSession key={user.id} />;
 }
 
-function BrowserSession({
-  user,
-  users,
-  onUserChange,
-}: {
-  user: User;
-  users: User[];
-  onUserChange: (user: User) => void;
-}) {
-  const [navigation, dispatchNavigation] = useReducer(
-    navigationReducer,
-    initialNavigationState,
-  );
-  const [session, dispatchSession] = useReducer(
-    sessionReducer,
-    initialSessionState,
-  );
-  const requestId = useRef(0);
+function BrowserSession() {
+  const user = useBrowserStore((state) => state.user);
+  const users = useBrowserStore((state) => state.users);
+  const navigation = useBrowserStore((state) => state.navigation);
+  const loading = useBrowserStore((state) => state.loading);
+  const visits = useBrowserStore((state) => state.visits);
+  const historyLoading = useBrowserStore((state) => state.historyLoading);
+  const historyError = useBrowserStore((state) => state.historyError);
+  const historyOpen = useBrowserStore((state) => state.historyOpen);
+  const publishOpen = useBrowserStore((state) => state.publishOpen);
+  const error = useBrowserStore((state) => state.error);
+  const selectUser = useBrowserStore((state) => state.selectUser);
+  const navigateTo = useBrowserStore((state) => state.navigateTo);
+  const search = useBrowserStore((state) => state.search);
+  const goBack = useBrowserStore((state) => state.goBack);
+  const goForward = useBrowserStore((state) => state.goForward);
+  const saveScroll = useBrowserStore((state) => state.saveScroll);
+  const reloadHistory = useBrowserStore((state) => state.reloadHistory);
+  const publish = useBrowserStore((state) => state.publish);
+  const setHistoryOpen = useBrowserStore((state) => state.setHistoryOpen);
+  const setPublishOpen = useBrowserStore((state) => state.setPublishOpen);
   const contentRef = useRef<HTMLDivElement>(null);
-  const frameScrollTimeout = useRef<number | null>(null);
+  const scrollTimeout = useRef<number | null>(null);
   const entry = current(navigation);
-  const address = entryAddress(entry);
-  const entryKey = `${navigation.index}:${entry?.kind ?? "empty"}:${address}`;
+  const entryKey = `${navigation.index}:${entry.kind}:${entryInput(entry)}`;
   const activeEntryKey = useRef(entryKey);
 
   useEffect(() => {
     activeEntryKey.current = entryKey;
   }, [entryKey]);
-
-  const reloadHistory = useCallback(async () => {
-    dispatchSession({ type: "HISTORY_LOADING", loading: true });
-    try {
-      const visits = await api.listVisits(user.id);
-      dispatchSession({ type: "VISITS", visits });
-    } catch (error) {
-      console.error("Could not load visit history.", error);
-      dispatchSession({ type: "ERROR", error: "Could not load visit history." });
-    } finally {
-      dispatchSession({ type: "HISTORY_LOADING", loading: false });
-    }
-  }, [user.id]);
-
-  useEffect(() => {
-    void reloadHistory();
-  }, [reloadHistory]);
-
-  const recordVisit = useCallback(
-    (target: Entry, via: Via) => {
-      if (target.kind !== "page") return;
-      void api
-        .recordVisit(user.id, {
-          address: target.address,
-          via,
-          found: target.site !== null,
-        })
-        .then(() => reloadHistory())
-        .catch((error: unknown) => {
-          console.error("Could not record visit.", error);
-          dispatchSession({
-            type: "ERROR",
-            error: "Could not save this visit to history.",
-          });
-        });
-    },
-    [reloadHistory, user.id],
-  );
-
-  const showSite = useCallback(
-    (site: Site | null, targetAddress: string, via: Via) => {
-      const target: Entry = {
-        kind: "page",
-        address: targetAddress,
-        site,
-        scrollY: 0,
-      };
-      dispatchNavigation({ type: "NAVIGATE", entry: target });
-      recordVisit(target, via);
-      dispatchSession({ type: "ERROR", error: "" });
-    },
-    [recordVisit],
-  );
-
-  const navigateTo = useCallback(
-    async (targetAddress: string, via: Via) => {
-      const request = ++requestId.current;
-      dispatchSession({ type: "LOADING", address: targetAddress });
-      dispatchSession({ type: "ERROR", error: "" });
-      try {
-        const site = await api.getSite(targetAddress);
-        if (request !== requestId.current) return;
-        showSite(site, targetAddress, via);
-      } catch (error) {
-        if (request !== requestId.current) return;
-        console.error(`Could not load ${targetAddress}.`, error);
-        dispatchSession({
-          type: "ERROR",
-          error: `Could not load ${targetAddress}. Please try again.`,
-        });
-      } finally {
-        if (request === requestId.current) {
-          dispatchSession({ type: "LOADING", address: null });
-        }
-      }
-    },
-    [showSite],
-  );
-
-  const search = useCallback(async (query: string) => {
-    const request = ++requestId.current;
-    dispatchSession({ type: "LOADING", address: "search" });
-    dispatchSession({ type: "ERROR", error: "" });
-    try {
-      const hits = query.trim() ? await api.search(query) : [];
-      if (request !== requestId.current) return;
-      const searchEntry: Entry = {
-        kind: "search",
-        query: query.trim(),
-        hits,
-        scrollY: 0,
-      };
-      dispatchNavigation({ type: "NAVIGATE", entry: searchEntry });
-    } catch (error) {
-      if (request !== requestId.current) return;
-      console.error("Could not search smallweb.", error);
-      dispatchSession({ type: "ERROR", error: "Search could not be completed." });
-    } finally {
-      if (request === requestId.current) {
-        dispatchSession({ type: "LOADING", address: null });
-      }
-    }
-  }, []);
-
-  const navigateFromHistory = useCallback(
-    (targetAddress: string) => {
-      dispatchSession({ type: "HISTORY_OPEN", open: false });
-      void navigateTo(targetAddress, "history");
-    },
-    [navigateTo],
-  );
-
-  const goBack = useCallback(() => {
-    const target = navigation.entries[navigation.index - 1];
-    if (!target) return;
-    requestId.current += 1;
-    dispatchSession({ type: "LOADING", address: null });
-    dispatchNavigation({ type: "BACK" });
-    recordVisit(target, "back");
-  }, [navigation, recordVisit]);
-
-  const goForward = useCallback(() => {
-    const target = navigation.entries[navigation.index + 1];
-    if (!target) return;
-    requestId.current += 1;
-    dispatchSession({ type: "LOADING", address: null });
-    dispatchNavigation({ type: "FORWARD" });
-    recordVisit(target, "forward");
-  }, [navigation, recordVisit]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -271,7 +90,10 @@ function BrowserSession({
   }, [goBack, goForward, navigation]);
 
   useEffect(() => {
-    if (entry?.kind === "search" && contentRef.current) {
+    if (
+      (entry.kind === "search" || entry.kind === "home") &&
+      contentRef.current
+    ) {
       contentRef.current.scrollTop = entry.scrollY;
     }
   }, [entryKey, entry]);
@@ -279,116 +101,120 @@ function BrowserSession({
   useEffect(() => {
     const element = contentRef.current;
     if (!element) return;
-    function saveScroll() {
-      if (frameScrollTimeout.current !== null) return;
-      frameScrollTimeout.current = window.setTimeout(() => {
-        frameScrollTimeout.current = null;
+    function onScroll() {
+      if (scrollTimeout.current !== null) return;
+      scrollTimeout.current = window.setTimeout(() => {
+        scrollTimeout.current = null;
         if (
           entryKey === activeEntryKey.current &&
-          entry?.kind === "search" &&
-          element
+          (entry.kind === "search" || entry.kind === "home")
         ) {
-          dispatchNavigation({ type: "SAVE_SCROLL", y: element.scrollTop });
+          saveScroll(contentRef.current?.scrollTop ?? 0);
         }
       }, 100);
     }
-    element.addEventListener("scroll", saveScroll, { passive: true });
+    element.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      element.removeEventListener("scroll", saveScroll);
-      if (frameScrollTimeout.current !== null) {
-        window.clearTimeout(frameScrollTimeout.current);
-        frameScrollTimeout.current = null;
+      element.removeEventListener("scroll", onScroll);
+      if (scrollTimeout.current !== null) {
+        window.clearTimeout(scrollTimeout.current);
+        scrollTimeout.current = null;
       }
     };
-  }, [entryKey, entry?.kind]);
+  }, [entry.kind, entryKey, saveScroll]);
 
-  const saveFrameScroll = useCallback((y: number, sourceEntryKey: string) => {
-    if (
-      sourceEntryKey !== activeEntryKey.current ||
-      frameScrollTimeout.current !== null
-    ) {
-      return;
-    }
-    frameScrollTimeout.current = window.setTimeout(() => {
-      frameScrollTimeout.current = null;
-      if (sourceEntryKey === activeEntryKey.current) {
-        dispatchNavigation({ type: "SAVE_SCROLL", y });
+  const saveFrameScroll = useCallback(
+    (y: number, sourceEntryKey: string) => {
+      if (
+        sourceEntryKey !== activeEntryKey.current ||
+        scrollTimeout.current !== null
+      ) {
+        return;
       }
-    }, 100);
-  }, []);
-
-  const publish = useCallback(
-    async (values: PublishValues) => {
-      requestId.current += 1;
-      dispatchSession({ type: "LOADING", address: null });
-      try {
-        const site = await api.publishSite(values);
-        dispatchSession({ type: "PUBLISH_OPEN", open: false });
-        showSite(site, site.address, "typed");
-      } catch (error) {
-        if (error instanceof ApiError) {
-          dispatchSession({
-            type: "ERROR",
-            error: `${error.code}: ${error.message}`,
-          });
-          return;
-        }
-        console.error("Could not publish page.", error);
-        dispatchSession({
-          type: "ERROR",
-          error: "Could not publish this page. Please try again.",
-        });
-      }
+      scrollTimeout.current = window.setTimeout(() => {
+        scrollTimeout.current = null;
+        if (sourceEntryKey === activeEntryKey.current) saveScroll(y);
+      }, 100);
     },
-    [showSite],
+    [saveScroll],
   );
 
-  const toolbarAddress = useMemo(() => address, [address]);
+  function navigateFromHistory(address: string) {
+    setHistoryOpen(false);
+    void navigateTo(address, "history");
+  }
+
   return (
-    <main className="browser-shell">
-      <header className="browser-header">
+    <main className="browser-shell bg-gradient-to-br from-white via-[#fbfcff] to-[#f8fbff]">
+      <header className="browser-header border-b border-b-[#e5eaf2] bg-gradient-to-r from-[#f5fbf8] via-[#fbfaff] to-[#fff8f5]">
         <div className="brand-row">
           <Link className="brand" href="/" aria-label="Smallweb home">
-            <span className="brand-icon" aria-hidden="true">
-              ◌
+            <span
+              className="brand-icon bg-gradient-to-br from-emerald-100 to-violet-100 text-[#347d75] shadow-[0_3px_8px_#466b741c]"
+              aria-hidden="true"
+            >
+              <FiGlobe focusable="false" />
             </span>
             <span>smallweb</span>
           </Link>
-          <span className="brand-caption">a browser for little places</span>
-          <UserPicker users={users} user={user} onChange={onUserChange} />
+          <span className="brand-caption text-slate-500">
+            a browser for little places
+          </span>
+          {user && (
+            <UserPicker
+              users={users}
+              user={user}
+              onChange={selectUser}
+            />
+          )}
         </div>
         <Toolbar
-          address={toolbarAddress}
+          value={entryInput(entry)}
           addressKey={entryKey}
           canBack={canGoBack(navigation)}
           canForward={canGoForward(navigation)}
           onBack={goBack}
           onForward={goForward}
-          onNavigate={(targetAddress) => void navigateTo(targetAddress, "typed")}
-          onHistory={() => dispatchSession({ type: "HISTORY_OPEN", open: true })}
-          onPublish={() => dispatchSession({ type: "PUBLISH_OPEN", open: true })}
+          onNavigate={(address) => void navigateTo(address, "typed")}
+          onHistory={() => {
+            setHistoryOpen(true);
+            void reloadHistory();
+          }}
+          onPublish={() => setPublishOpen(true)}
           onSearch={(query) => void search(query)}
         />
       </header>
 
-      <div className="browser-content-wrap">
+      <div className="browser-content-wrap bg-[radial-gradient(ellipse_at_18%_20%,#f1f8ff_0,transparent_37%),radial-gradient(ellipse_at_82%_86%,#fff2ed_0,transparent_34%),#fcfdfd]">
         <div className="browser-content" ref={contentRef} tabIndex={-1}>
-          {!entry ? (
-            <section className="welcome-page">
-              <div className="welcome-orbit" aria-hidden="true">
-                <span>◌</span>
+          {entry.kind === "home" ? (
+            <section className="welcome-page bg-[radial-gradient(ellipse_at_18%_20%,#f1f8ff_0,transparent_37%),radial-gradient(ellipse_at_82%_86%,#fff2ed_0,transparent_34%),#fcfdfd]">
+              <div
+                className="welcome-orbit border-emerald-200 bg-gradient-to-br from-emerald-100 via-violet-100 to-orange-100 text-[#438d82] shadow-[0_12px_30px_#657c9b20]"
+                aria-hidden="true"
+              >
+                <FiGlobe focusable="false" />
               </div>
-              <p className="eyebrow">A SMALLER SIDE OF THE INTERNET</p>
+              <p className="eyebrow text-emerald-800">
+                A SMALLER SIDE OF THE INTERNET
+              </p>
               <h1>Find a little place<br />to call your own.</h1>
               <p className="welcome-copy">
                 Visit a smallweb address or search for something unexpected.
               </p>
               <div className="suggested-sites">
                 <span>Try a place</span>
-                {["tidepool.zz", "fern.zz", "nightjar.zz"].map((site) => (
+                {SUGGESTED_SITES.map((site, index) => (
                   <button
                     type="button"
                     key={site}
+                    className={
+                      index === 0
+                        ? "border-emerald-200 bg-gradient-to-r from-emerald-50 to-white text-emerald-800 hover:border-emerald-300 hover:bg-emerald-100"
+                        : index === 1
+                          ? "border-violet-200 bg-gradient-to-r from-violet-50 to-white text-violet-800 hover:border-violet-300 hover:bg-violet-100"
+                          : "border-orange-200 bg-gradient-to-r from-orange-50 to-white text-orange-800 hover:border-orange-300 hover:bg-orange-100"
+                    }
                     onClick={() => void navigateTo(site, "typed")}
                   >
                     {site}
@@ -400,59 +226,60 @@ function BrowserSession({
             <SearchResults
               query={entry.query}
               hits={entry.hits}
-              onNavigate={(targetAddress) =>
-                void navigateTo(targetAddress, "search")
-              }
+              onNavigate={(address) => void navigateTo(address, "search")}
             />
           ) : entry.site ? (
             <PageViewer
               key={entryKey}
               site={entry.site}
               scrollY={entry.scrollY}
-              onNavigate={(targetAddress) => void navigateTo(targetAddress, "link")}
+              onNavigate={(address) => void navigateTo(address, "link")}
               onScroll={(y) => saveFrameScroll(y, entryKey)}
             />
           ) : (
             <NowherePage address={entry.address} />
           )}
         </div>
-        {session.loading && (
+        {loading && (
           <div className="loading-indicator" role="status">
             <span className="spinner" />
-            {session.loading === "search"
+            {loading === "search"
               ? "Searching…"
-              : `Finding ${session.loading}…`}
+              : `Finding ${loading}…`}
           </div>
         )}
       </div>
 
-      <footer className="browser-footer">
+      <footer className="browser-footer border-t border-t-[#e7ebf1] bg-gradient-to-r from-white via-[#f9fbff] to-[#fffaf8] text-slate-500">
         <span>
-          {entry?.kind === "page" && entry.site
+          {entry.kind === "page" && entry.site
             ? `A small place by ${entry.site.author.name}`
             : "Made for wandering"}
         </span>
-        <span>{entry?.kind === "page" ? getEntryTitle(entry) : "smallweb.zz"}</span>
+        <span>
+          {entry.kind === "page" ? getEntryTitle(entry) : "smallweb.zz"}
+        </span>
       </footer>
-      {session.error && (
+      {error && (
         <div className="notice" role="alert">
-          {session.error}
+          {error}
         </div>
       )}
-      {session.historyOpen && (
+      {historyOpen && (
         <HistoryPanel
-          visits={session.visits}
-          loading={session.historyLoading}
-          onClose={() => dispatchSession({ type: "HISTORY_OPEN", open: false })}
+          visits={visits}
+          loading={historyLoading}
+          error={historyError}
+          onClose={() => setHistoryOpen(false)}
           onNavigate={navigateFromHistory}
         />
       )}
-      {session.publishOpen && (
+      {publishOpen && user && (
         <PublishDialog
           users={users}
           currentUser={user}
-          error={session.error}
-          onClose={() => dispatchSession({ type: "PUBLISH_OPEN", open: false })}
+          error={error}
+          onClose={() => setPublishOpen(false)}
           onPublish={publish}
         />
       )}

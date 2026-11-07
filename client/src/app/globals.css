@@ -2,19 +2,20 @@
 
 :root {
   color-scheme: light;
-  --ink: #203b38;
-  --muted: #788984;
-  --line: #e6ece8;
-  --paper: #f5f8f5;
+  --ink: #263b51;
+  --muted: #748397;
+  --line: #e4e9f1;
+  --paper: #f3f6fb;
   --white: #ffffff;
-  --green: #2f746a;
-  --green-dark: #235d55;
-  --wash: #e6f1eb;
+  --green: #388478;
+  --green-dark: #28665f;
+  --wash: #e4f3ef;
+  --coral: #e87963;
+  --lavender: #eeeaff;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-source-sans);
 }
 
 * {
@@ -30,7 +31,7 @@ body {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-source-sans), sans-serif;
   font-size: 14px;
 }
 
@@ -41,16 +42,12 @@ select {
   font: inherit;
 }
 
-button {
-  color: inherit;
-}
-
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 3px solid #9ac9bc;
+  outline: 3px solid #93c9c1;
   outline-offset: 2px;
 }
 
@@ -73,14 +70,13 @@ select:focus-visible {
   height: 100dvh;
   min-height: 480px;
   overflow: hidden;
-  background: var(--white);
 }
 
 .browser-header {
   z-index: 2;
   flex: none;
-  border-bottom: 1px solid var(--line);
-  background: #fff;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
 }
 
 .brand-row {
@@ -88,7 +84,7 @@ select:focus-visible {
   align-items: center;
   height: 57px;
   padding: 0 25px;
-  border-bottom: 1px solid #f0f3f1;
+  border-bottom: 1px solid #edf0f4;
 }
 
 .brand {
@@ -108,15 +104,12 @@ select:focus-visible {
   height: 27px;
   place-items: center;
   border-radius: 9px;
-  background: #e3f0e9;
-  color: var(--green);
   font-size: 22px;
   line-height: 1;
 }
 
 .brand-caption {
   margin-left: 13px;
-  color: #a0aaa6;
   font-size: 11px;
 }
 
@@ -129,13 +122,90 @@ select:focus-visible {
   font-size: 11px;
 }
 
-.user-picker select {
-  max-width: 175px;
+.select-dropdown {
+  position: relative;
+  min-width: 0;
+}
+
+.select-dropdown-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 8px 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+
+.select-dropdown-trigger svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: #89968f;
+}
+
+.select-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  min-width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 10px;
+}
+
+.select-dropdown-option {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.select-dropdown-option:hover,
+.select-dropdown-option:focus-visible {
+  outline: none;
+}
+
+.select-dropdown-option svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.user-select {
+  min-width: 155px;
+}
+
+.user-select .select-dropdown-trigger {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 11px;
+}
+
+.author-select {
+  width: 100%;
+}
+
+.user-picker .select-dropdown-trigger {
   padding: 7px 26px 7px 10px;
-  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
-  color: var(--ink);
   font-size: 12px;
 }
 
@@ -161,47 +231,58 @@ select:focus-visible {
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #536760;
   cursor: pointer;
-  font-size: 21px;
+  font-size: 18px;
   line-height: 1;
 }
 
-.icon-button:hover:not(:disabled) {
-  background: #f0f5f1;
-}
-
 .icon-button:disabled {
-  color: #c8d0cc;
   cursor: default;
 }
 
-.address-form {
+.omnibox-wrap {
+  position: relative;
+  display: flex;
+  min-width: 120px;
+  flex: 1;
+}
+
+.omnibox {
   position: relative;
   display: flex;
   align-items: center;
   min-width: 120px;
   height: 38px;
-  flex: 1;
+  width: 100%;
   padding: 0 5px 0 12px;
-  border: 1px solid #e8eeea;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 11px;
-  background: #f8faf8;
-}
-
-.address-form:focus-within {
-  border-color: #9dc8ba;
-  background: #fff;
+  transition: border-color 140ms, box-shadow 140ms;
 }
 
 .address-lock {
   margin-right: 9px;
-  color: #74a096;
   font-size: 15px;
 }
 
-.address-form input,
-.search-form input {
+.omnibox-icon {
+  flex: none;
+  margin-right: 9px;
+  font-size: 15px;
+}
+
+.brand-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.welcome-orbit > svg {
+  width: 48px;
+  height: 48px;
+}
+
+.omnibox input {
   width: 100%;
   min-width: 0;
   border: 0;
@@ -211,70 +292,34 @@ select:focus-visible {
   font-size: 12px;
 }
 
-.address-form input::placeholder,
-.search-form input::placeholder {
-  color: #a0aca7;
-}
-
 .go-button {
+  display: grid;
+  width: 34px;
   min-width: 42px;
   height: 28px;
+  place-items: center;
   border: 0;
   border-radius: 7px;
-  background: #e8f1ec;
-  color: #41766d;
   cursor: pointer;
   font-size: 11px;
   font-weight: 700;
 }
 
-.go-button:hover {
-  background: #dcebe2;
+.go-button svg {
+  width: 16px;
+  height: 16px;
 }
 
-.field-error {
+.omnibox-hint {
   position: absolute;
   top: calc(100% + 6px);
   left: 10px;
   z-index: 3;
   padding: 6px 9px;
-  border: 1px solid #f2d5cf;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 7px;
-  background: #fff8f6;
-  color: #a44230;
   font-size: 11px;
-  box-shadow: 0 4px 14px #334a3c18;
-}
-
-.search-form {
-  display: flex;
-  width: 158px;
-  height: 38px;
-  flex: none;
-  align-items: center;
-  padding: 0 4px 0 11px;
-  border: 1px solid #e8eeea;
-  border-radius: 11px;
-  background: #f8faf8;
-}
-
-.search-form:focus-within {
-  border-color: #9dc8ba;
-  background: #fff;
-}
-
-.search-submit {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: none;
-  place-items: center;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: #648179;
-  cursor: pointer;
-  font-size: 21px;
 }
 
 .toolbar-button {
@@ -284,35 +329,27 @@ select:focus-visible {
   align-items: center;
   justify-content: center;
   padding: 0 11px;
-  border: 1px solid transparent;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 9px;
-  background: transparent;
-  color: #546962;
   cursor: pointer;
   font-size: 12px;
 }
 
-.toolbar-button:hover {
-  background: #f4f7f4;
-}
-
 .publish-button {
   gap: 5px;
-  border-color: #dbe8df;
-  background: #f2f7f3;
-  color: #31695e;
   font-weight: 600;
 }
 
-.publish-button:hover {
-  background: #e6f1e9;
+.publish-button svg {
+  width: 14px;
+  height: 14px;
 }
 
 .browser-content-wrap {
   position: relative;
   min-height: 0;
   flex: 1;
-  background: #fbfcfb;
 }
 
 .browser-content {
@@ -347,10 +384,9 @@ select:focus-visible {
   height: 78px;
   margin-bottom: 27px;
   place-items: center;
-  border: 1px solid #cfe2d7;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 28px;
-  background: #eff6f0;
-  color: #5a9886;
   font-size: 53px;
   line-height: 1;
   transform: rotate(-8deg);
@@ -358,7 +394,6 @@ select:focus-visible {
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #729087;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -393,17 +428,16 @@ select:focus-visible {
 
 .suggested-sites button {
   padding: 7px 10px;
-  border: 1px solid #e4ece6;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 99px;
-  background: #fff;
-  color: #4a7569;
   cursor: pointer;
   font-size: 11px;
+  transition: transform 140ms;
 }
 
 .suggested-sites button:hover {
-  border-color: #c7ddd0;
-  background: #f1f7f2;
+  transform: translateY(-1px);
 }
 
 .nowhere-page {
@@ -469,31 +503,32 @@ select:focus-visible {
   align-items: flex-start;
   gap: 7px;
   padding: 17px 19px;
-  border: 1px solid #e7ece8;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 12px;
-  background: #fff;
   cursor: pointer;
   text-align: left;
-  transition: border-color 120ms, transform 120ms;
+  transition: border-color 140ms, transform 140ms, box-shadow 140ms;
 }
 
 .result-card:hover {
-  transform: translateY(-1px);
-  border-color: #bfd8ca;
+  transform: translateY(-2px);
 }
 
 .result-address {
-  color: #619184;
+  display: inline-flex;
+  padding: 3px 7px;
+  border-radius: 99px;
   font-size: 11px;
 }
 
 .result-card strong {
-  color: #2d4942;
+  color: #2e465d;
   font-size: 15px;
 }
 
 .result-snippet {
-  color: #7b8882;
+  color: #778697;
   font-size: 12px;
   line-height: 1.55;
 }
@@ -505,9 +540,8 @@ select:focus-visible {
   align-items: center;
   justify-content: space-between;
   padding: 0 25px;
-  border-top: 1px solid var(--line);
-  background: #fff;
-  color: #a0aaa5;
+  border-top-width: 1px;
+  border-top-style: solid;
   font-size: 10px;
 }
 
@@ -519,10 +553,10 @@ select:focus-visible {
   align-items: center;
   gap: 8px;
   padding: 9px 13px;
-  border: 1px solid #e7ede8;
+  border: 1px solid #dfe8e7;
   border-radius: 99px;
   background: #fff;
-  color: #637970;
+  color: #4f7270;
   font-size: 11px;
   box-shadow: 0 4px 16px #3247380d;
 }
@@ -530,8 +564,8 @@ select:focus-visible {
 .spinner {
   width: 12px;
   height: 12px;
-  border: 2px solid #d6e5db;
-  border-top-color: #5a9483;
+  border: 2px solid #d9e8e6;
+  border-top-color: #4f9a8d;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -697,7 +731,7 @@ select:focus-visible {
 
 .publish-form input,
 .publish-form textarea,
-.publish-form select {
+.publish-form .select-dropdown-trigger {
   width: 100%;
   min-width: 0;
   padding: 10px 11px;
@@ -803,15 +837,9 @@ select:focus-visible {
     order: 0;
   }
 
-  .address-form {
+  .omnibox-wrap {
     order: 1;
     flex-basis: calc(100% - 96px);
-  }
-
-  .search-form {
-    order: 2;
-    width: auto;
-    flex: 1;
   }
 
   .toolbar-button {
@@ -840,15 +868,15 @@ select:focus-visible {
     height: 52px;
   }
 
-  .user-picker select {
-    max-width: 145px;
+  .user-select {
+    min-width: 135px;
   }
 
   .toolbar {
     min-height: 98px;
   }
 
-  .address-form {
+  .omnibox-wrap {
     flex-basis: calc(100% - 85px);
   }
 

@@ -1,27 +1,14 @@
-import type { Visit } from "@/lib/types";
-
-function relativeTime(value: string): string {
-  const elapsed = Math.max(0, Date.now() - new Date(value).getTime());
-  const minutes = Math.floor(elapsed / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
+import { FiX } from "react-icons/fi";
+import { relativeTime } from "@/lib/helper";
+import type { HistoryPanelProps } from "@/lib/types";
 
 export function HistoryPanel({
   visits,
   loading,
+  error,
   onClose,
   onNavigate,
-}: {
-  visits: Visit[];
-  loading: boolean;
-  onClose: () => void;
-  onNavigate: (address: string) => void;
-}) {
+}: HistoryPanelProps) {
   return (
     <div className="overlay history-overlay" onMouseDown={onClose}>
       <aside
@@ -42,11 +29,13 @@ export function HistoryPanel({
             onClick={onClose}
             aria-label="Close history"
           >
-            ×
+            <FiX aria-hidden="true" focusable="false" size={30} className="hover:bg-gray-300 p-1 rounded" />
           </button>
         </div>
         {loading ? (
           <p className="panel-message">Loading your history…</p>
+        ) : error ? (
+          <p className="panel-message" role="alert">{error}</p>
         ) : visits.length === 0 ? (
           <p className="panel-message">Your visited pages will show up here.</p>
         ) : (

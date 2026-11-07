@@ -1,15 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { isValidAddress, normalizeAddress } from "@/lib/address";
-import type { User } from "@/lib/types";
-
-export type PublishValues = {
-  address: string;
-  title: string;
-  body: string;
-  authorId: string;
-};
+import { FiX } from "react-icons/fi";
+import { isValidAddress, normalizeAddress } from "@/lib/helper";
+import type { PublishDialogProps } from "@/lib/types";
+import { SelectDropdown } from "./SelectDropdown";
 
 export function PublishDialog({
   users,
@@ -17,13 +12,7 @@ export function PublishDialog({
   error,
   onClose,
   onPublish,
-}: {
-  users: User[];
-  currentUser: User;
-  error: string;
-  onClose: () => void;
-  onPublish: (values: PublishValues) => Promise<void>;
-}) {
+}: PublishDialogProps) {
   const [address, setAddress] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -71,7 +60,7 @@ export function PublishDialog({
             aria-label="Close publish dialog"
             onClick={onClose}
           >
-            ×
+            <FiX aria-hidden="true" focusable="false" />
           </button>
         </div>
         <form className="publish-form" onSubmit={submit}>
@@ -108,16 +97,16 @@ export function PublishDialog({
           </label>
           <label>
             Author
-            <select
+            <SelectDropdown
+              label="Author"
               value={authorId}
-              onChange={(event) => setAuthorId(event.target.value)}
-            >
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
+              options={users.map((user) => ({
+                value: user.id,
+                label: user.name,
+              }))}
+              className="author-select"
+              onChange={setAuthorId}
+            />
           </label>
           {(validationError || error) && (
             <p className="form-error" role="alert">

@@ -1,4 +1,6 @@
-export function NowherePage({ address }: { address: string }) {
+import type { NowherePageProps } from "@/lib/types";
+
+export function NowherePage({ address }: NowherePageProps) {
   return (
     <section className="nowhere-page" aria-live="polite">
       <div className="nowhere-mark" aria-hidden="true">
